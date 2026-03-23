@@ -1,0 +1,54 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+    margin: 0;
+    padding: 0;
+    color: #222;
+}
+header {
+    background: #ffd600;
+    color: #222;
+    box-shadow: 0 4px 16px rgba(255,214,0,0.12);
+    padding: 2rem 1rem 1rem 1rem;
+    text-align: center;
+    border-bottom-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+}
+header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+}
+main {
+    max-width: 600px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(37,99,235,0.08);
+    padding: 2rem;
+}
+ul#cours-list {
+    list-style: none;
+    padding: 0;
+}
+ul#cours-list li {
+    background: #f1f5f9;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.05);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+ul#cours-list li::before {
+    content: "🔒";
+    margin-right: 0.8rem;
+    font-size: 1.3rem;
+}
+footer {
+    text-align: center;
+    padding: 1rem;
+    color: #2563eb;
+    font-size: 0.95rem;
+}

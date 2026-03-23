@@ -1,0 +1,110 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Lab AWS Technicien - Infrastructure Statique Sécurisée (S3 + KMS + CloudFront + OAC)'
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: cloud-pastor-secure-app
+    Description: Nom du projet.
+
+Resources:
+  # 1. La Clé KMS pour le chiffrement des données
+  MyKMSKey:
+    Type: AWS::KMS::Key
+    Properties: 
+      Description: "Cle pour chiffrer le bucket S3 du lab"
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+          - Sid: Allow CloudFront to use the key
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Resource: "*"
+
+  MyKMSAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Sub "alias/${ProjectName}-key"
+      TargetKeyId: !Ref MyKMSKey
+
+  # 2. Le Bucket S3 (Privé et Chiffré)
+  MySecureBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "aws:kms"
+              KMSMasterKeyID: !Ref MyKMSKey
+            BucketKeyEnabled: true
+
+  # 3. Origin Access Control (OAC) pour CloudFront
+  MyCloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties: 
+      OriginAccessControlConfig: 
+        Description: "OAC pour restreindre S3 a CloudFront"
+        Name: !Sub "${ProjectName}-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # 4. La Distribution CloudFront
+  MyDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt MySecureBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt MyCloudFrontOAC.Id
+            S3OriginConfig:
+              OriginAccessCredentials: ""
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          ForwardedValues:
+            QueryString: false
+
+  # 5. La Politique de Bucket (Lien de confiance S3 <-> CloudFront)
+  MyBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MySecureBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action: "s3:GetObject"
+            Effect: Allow
+            Resource: !Sub "${MySecureBucket.Arn}/*"
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${MyDistribution}"
+
+Outputs:
+  CloudFrontURL:
+    Description: "URL du site web securise"
+    Value: !GetAtt MyDistribution.DomainName
+  S3BucketName:
+    Description: "Nom du bucket cree"
+    Value: !Ref MySecureBucket
