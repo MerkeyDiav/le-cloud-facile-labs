@@ -76,8 +76,7 @@ Resources:
           - Id: S3Origin
             DomainName: !GetAtt MySecureBucket.RegionalDomainName
             OriginAccessControlId: !GetAtt MyCloudFrontOAC.Id
-            S3OriginConfig:
-              OriginAccessCredentials: ""
+            S3OriginConfig: {}
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: redirect-to-https
@@ -99,7 +98,7 @@ Resources:
               Service: cloudfront.amazonaws.com
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${MyDistribution}"
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${MyDistribution.Id}"
 
 Outputs:
   CloudFrontURL:
