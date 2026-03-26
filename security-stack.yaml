@@ -37,11 +37,12 @@ Resources:
       AliasName: !Sub "alias/${ProjectName}-key"
       TargetKeyId: !Ref MyKMSKey
 
-  # 2. Le Bucket S3 (Privé et Chiffré)
+  # 2. Le Bucket S3 Privé utilisant le Namespace Régional
   MySecureBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "${ProjectName}-${AWS::AccountId}-${AWS::Region}"
+      BucketNamePrefix: !Ref ProjectName
+      BucketNamespace: account-regional
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
