@@ -108,3 +108,13 @@ Outputs:
   S3BucketName:
     Description: "Nom du bucket cree"
     Value: !Ref MySecureBucket
+
+# ---
+# Une fois la stack déployée, utilisez ces commandes pour uploader vos fichiers dans le bucket S3 :
+# (Remplacez <nom-bucket> par le nom réel affiché dans les outputs CloudFormation)
+#
+# 1. Pour copier un fichier :
+# aws s3 cp index.html s3://<nom-bucket>/
+#
+# 2. Pour synchroniser tout le dossier courant :
+# aws s3 sync . s3://<nom-bucket>/
